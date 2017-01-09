@@ -24,6 +24,32 @@ let randomNumbers = sequence(first: 100) {
 }
 Array(randomNumbers)
 
+//Implement a stack
+public struct Stack<Element> {
+    fileprivate var array: [Element] = []
+    public var count: Int {
+        return array.count
+    }
+    public var isEmpty: Bool {
+        return array.isEmpty
+    }
+    public mutating func push(_ newElement: Element){
+        array.append(newElement)
+    }
+    public mutating func pop() -> Element? {
+        return array.popLast()
+    }
+    public var top: Element? {
+        return array.last
+    }
+}
+
+protocol ProtocolStack {
+    associatedtype Element
+    mutating func push(_: Element)
+    mutating func pop() -> Element?
+}
+
 /*Difference between sequences and iterators: sequences carry their own iterations state and are mutated as they're traversed.
  collection - a stable sequence can be traversed nondestructively and accessed via subscript. Built upon top of sequence.
  */
@@ -62,7 +88,7 @@ var iceCreamQueue = RegularQueue(array:["vanilla", "chocolate chip cookie", "str
 iceCreamQueue.enqueue("Mango")
 iceCreamQueue.dequeue()
 print(iceCreamQueue)
-
+iceCreamQueue.array.removeLast()
 
 struct FIFOQueue<Element>:Queue {
     fileprivate var left:[Element] = []
@@ -107,6 +133,99 @@ for item in queue {
 }
 queue.map { $0.uppercased() }
 queue.filter { $0.characters.count > 1}
+
+//Indices: endIndex comes after the last element of the collection (someIndex ..< endIndex)
+//Linked lists
+public class LinkedListNode<Element> {
+    var value: Element
+    var next: LinkedListNode?
+    weak var previous: LinkedListNode?
+    
+    public init(value: Element){
+        self.value = value
+    }
+}
+
+public class LinkedList<Element> {
+    public typealias Node = LinkedListNode<Element>
+    fileprivate var head: Node?
+    
+    public var isEmpty: Bool {
+        return head == nil
+    }
+    
+    public var first: Node? {
+        return head
+    }
+    public var last: Node? {
+        if var node = head {
+            while case let next? = node.next {
+                node = next
+            }
+            return node
+        } else {
+            return nil
+        }
+    }
+    public func append(_ newElement: Element) {
+        let newNode = Node(value: newElement)
+        if let lastNode = last {
+            newNode.previous = lastNode
+            lastNode.next = newNode
+        } else {
+            head = newNode
+        }
+    }
+}
+
+//implementing using enum
+enum List<Element> {
+    case end
+    //indirect tells the compiler node is represented as reference, since enums are value types
+    indirect case node(Element, next: List<Element>)
+}
+
+extension List {
+    func cons(_ x: Element) -> List {
+        return .node(x, next: self)
+    }
+}
+
+extension List: ExpressibleByArrayLiteral {
+    init(arrayLiteral elements: Element...) {
+        self = elements.reversed().reduce(.end) {
+            partialList, element in
+            partialList.cons(element)
+        }
+    }
+}
+
+let list = List<Int>.end.cons(1).cons(2).cons(3)
+let secondList: List = [3, 2, 1]
+
+extension List: ProtocolStack {
+    mutating func push(_ element: Element) {
+        self = self.cons(element)
+    }
+    mutating func pop() -> Element? {
+        switch self {
+        case .end:
+            return nil
+        case let .node(x, next: xs):
+            self = xs
+            return x
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
 
 
 
